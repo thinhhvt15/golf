@@ -1,0 +1,81 @@
+# depslib dependency file v1.0
+1709771116 source:c:\users\laptophq\desktop\abca\golf\baseobject.cpp
+	"BaseObject.h"
+
+1709771104 c:\users\laptophq\desktop\abca\golf\baseobject.h
+	"Common_Function.h"
+
+1711689845 c:\users\laptophq\desktop\abca\golf\common_function.h
+	<bits/stdc++.h>
+	<SDL.h>
+	<SDL_image.h>
+
+1711354222 source:c:\users\laptophq\desktop\abca\golf\common_function.cpp
+	"Common_Function.h"
+
+1712243077 source:c:\users\laptophq\desktop\abca\golf\main.cpp
+	<SDL_ttf.h>
+	<SDL.h>
+	<SDL_image.h>
+	<SDL_mixer.h>
+	<bits/stdc++.h>
+	"Common_Function.h"
+	"Settings.h"
+	"RenderWindow.h"
+	"Ball.h"
+	"Hole.h"
+	"Obstacle.h"
+	"Ellipse.h"
+
+1712243927 source:c:\users\laptophq\desktop\abca\golf\ball.cpp
+	"Ball.h"
+
+1712231164 c:\users\laptophq\desktop\abca\golf\ball.h
+	"Common_Function.h"
+	"Entity.h"
+	"Obstacle.h"
+
+1711177673 c:\users\laptophq\desktop\abca\golf\settings.h
+	"Common_Function.h"
+
+1711355189 source:c:\users\laptophq\desktop\abca\golf\settings.cpp
+	"Settings.h"
+
+1712230110 c:\users\laptophq\desktop\abca\golf\math.h
+	<iostream>
+
+1712233012 c:\users\laptophq\desktop\abca\golf\entity.h
+	"Common_Function.h"
+	"Math.h"
+
+1712241954 c:\users\laptophq\desktop\abca\golf\renderwindow.h
+	"Common_Function.h"
+
+1712242276 source:c:\users\laptophq\desktop\abca\golf\renderwindow.cpp
+	"RenderWindow.h"
+
+1711690188 c:\users\laptophq\desktop\abca\golf\hole.h
+	"Entity.h"
+
+1712234889 c:\users\laptophq\desktop\abca\golf\obstacle.h
+	"Entity.h"
+
+1712234679 source:c:\users\laptophq\desktop\abca\golf\obstacless.cpp
+	"Obstacle.h"
+
+1711800964 c:\users\laptophq\desktop\abca\golf\obstaclebuilder.h
+	"Obstacle.h"
+	"Math.h"
+
+1711801338 source:c:\users\laptophq\desktop\abca\golf\obsbuilder.cpp
+	"obstacleBuilder.h"
+	"Common_Function.h"
+
+1712124339 source:c:\users\laptophq\desktop\abca\golf\ellipse.cpp
+	"Ellipse.h"
+
+1712206445 c:\users\laptophq\desktop\abca\golf\ellipse.h
+	"Math.h"
+	"Obstacle.h"
+	"Ball.h"
+
