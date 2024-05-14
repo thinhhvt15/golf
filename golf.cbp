@@ -32,20 +32,38 @@
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
 		</Compiler>
+		<Unit filename="AmmoObject.cpp" />
+		<Unit filename="AmmoObject.h" />
 		<Unit filename="Ball.cpp" />
 		<Unit filename="Ball.h" />
+		<Unit filename="BaseObject.h" />
+		<Unit filename="CollisionsAndEffects.h" />
 		<Unit filename="Common_Function.cpp" />
 		<Unit filename="Common_Function.h" />
+		<Unit filename="Enemies.h" />
 		<Unit filename="Entity.h" />
 		<Unit filename="Hole.h" />
 		<Unit filename="Math.h" />
+		<Unit filename="MenuGame.h" />
 		<Unit filename="Obstacle.h" />
 		<Unit filename="RenderWindow.cpp" />
 		<Unit filename="RenderWindow.h" />
 		<Unit filename="Settings.cpp" />
 		<Unit filename="Settings.h" />
+		<Unit filename="Tile.cpp" />
+		<Unit filename="Tiles.h" />
+		<Unit filename="Timer.cpp" />
+		<Unit filename="Timer.h" />
+		<Unit filename="algorithms.cpp" />
+		<Unit filename="algorithms.h" />
+		<Unit filename="collisionEffects.cpp" />
+		<Unit filename="enemies.cpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="math.cpp" />
+		<Unit filename="menuGame.cpp" />
 		<Unit filename="obstacless.cpp" />
+		<Unit filename="skill.cpp" />
+		<Unit filename="skill.h" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

@@ -13,10 +13,15 @@ bool RenderWindow::init()
     }
 
     gWindow = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              450, 750, SDL_WINDOW_SHOWN);
+                              SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
 
     if (gWindow == nullptr) {
         printf("Window get error", SDL_GetError());
+        return 0;
+    }
+
+    if (TTF_Init() == -1) {
+        printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
         return 0;
     }
 
@@ -57,16 +62,37 @@ SDL_Texture* RenderWindow::loadTexture(const char* path)
     return texture;
 }
 
-void RenderWindow::render(SDL_Texture* texture, SDL_Rect rect, double angle)
+void RenderWindow::render( int x, int y, int w, int h, SDL_Texture* texture, SDL_Rect* clip, double angle, SDL_Point* center, SDL_RendererFlip flip )
 {
-    SDL_RenderCopyEx(renderer, texture, nullptr, &rect, angle, nullptr, SDL_FLIP_NONE);
+	//Set rendering space and render to screen
+	SDL_Rect renderQuad = { x, y, w, h };
+
+	//Set clip rendering dimensions
+	if( clip != NULL )
+	{
+		renderQuad.w = clip->w;
+		renderQuad.h = clip->h;
+	}
+
+	//Render to screen
+	SDL_RenderCopyEx( renderer, texture, clip, &renderQuad, angle, center, flip );
+}
+
+void RenderWindow::render(SDL_Texture* texture, SDL_Rect rect, double angle, int flip)
+{
+    if (flip == 0)
+        SDL_RenderCopyEx(renderer, texture, nullptr, &rect, angle, nullptr, SDL_FLIP_NONE);
+    else if (flip == 1)
+        SDL_RenderCopyEx(renderer, texture, nullptr, &rect, angle, nullptr, SDL_FLIP_HORIZONTAL);
+    else
+        SDL_RenderCopyEx(renderer, texture, nullptr, &rect, angle, nullptr, SDL_FLIP_VERTICAL);
 }
 void RenderWindow::render(SDL_Texture* texture, SDL_Rect rect)
 {
     SDL_RenderCopy(renderer, texture, nullptr, &rect);
 }
 
-void RenderWindow::render(SDL_Texture* texture, float x, float y, float w, float h)
+void RenderWindow::render(SDL_Texture* texture, double x, double y, double w, double h)
 {
     SDL_Rect rect;
     rect = {x, y, w, h};
@@ -83,12 +109,83 @@ void RenderWindow::render(SDL_Texture* texture, SDL_Rect dest, SDL_Rect rect)
     SDL_RenderCopy(renderer, texture, &dest, &rect);
 }
 
+void RenderWindow::render(SDL_Texture* texture, SDL_Rect dest, SDL_Rect rect, double angle, int flip)
+{
+    if (flip == 0)
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_NONE);
+    else if (flip == 1)
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_HORIZONTAL);
+    else
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_VERTICAL);
+}
+
+void RenderWindow::render(SDL_Texture* texture, SDL_Rect dest, SDL_Rect rect, double angle, int flip, double Ratio)
+{
+    dest.h *= Ratio;
+    rect.h *= Ratio;
+    if (flip == 0)
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_NONE);
+    else if (flip == 1)
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_HORIZONTAL);
+    else
+        SDL_RenderCopyEx(renderer, texture, &dest, &rect, angle, nullptr, SDL_FLIP_VERTICAL);
+}
+
 void RenderWindow::render(std::vector<SDL_Texture*> texVec, SDL_Rect rect, double angle)
 {
     for(auto e : texVec) {
         SDL_RenderCopyEx(renderer, e, nullptr, &rect, angle, nullptr, SDL_FLIP_NONE);
 //        SDL_Delay(100);
     }
+}
+
+void RenderWindow::render(float p_x, float p_y, const char* p_text, TTF_Font* font, SDL_Color textColor)
+{
+		SDL_Surface* surfaceMessage = TTF_RenderText_Blended( font, p_text, textColor);
+		SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+		SDL_Rect src;
+		src.x = 0;
+		src.y = 0;
+		src.w = surfaceMessage->w;
+		src.h = surfaceMessage->h;
+
+		SDL_Rect dst;
+		dst.x = p_x;
+		dst.y = p_y;
+		dst.w = src.w;
+		dst.h = src.h;
+
+		SDL_RenderCopy(renderer, message, &src, &dst);
+		SDL_FreeSurface(surfaceMessage);
+	 	SDL_DestroyTexture(message);
+}
+
+void RenderWindow::renderCenter(float p_x, float p_y, const char* p_text, TTF_Font* font, SDL_Color textColor)
+{
+		SDL_Surface* surfaceMessage = TTF_RenderText_Blended( font, p_text, textColor);
+		SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+		SDL_Rect src;
+		src.x = 0;
+		src.y = 0;
+		src.w = surfaceMessage->w;
+		src.h = surfaceMessage->h;
+
+		SDL_Rect dst;
+		dst.x = SCREEN_WIDTH/2 - src.w/2 + p_x;
+		dst.y = SCREEN_HEIGHT/2 - src.h/2 + p_y;
+		dst.w = src.w;
+		dst.h = src.h;
+
+		SDL_RenderCopy(renderer, message, &src, &dst);
+		SDL_FreeSurface(surfaceMessage);
+		SDL_DestroyTexture(message);
+}
+
+void RenderWindow::setOpacity(SDL_Texture* texture, int opacity)
+{
+    SDL_SetTextureAlphaMod(texture, opacity);
 }
 void RenderWindow::Show()
 {
@@ -101,5 +198,6 @@ void RenderWindow::Quit()
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(gWindow);
     SDL_Quit();
+    TTF_Quit();
 }
 

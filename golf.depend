@@ -2,18 +2,20 @@
 1709771116 source:c:\users\laptophq\desktop\abca\golf\baseobject.cpp
 	"BaseObject.h"
 
-1709771104 c:\users\laptophq\desktop\abca\golf\baseobject.h
+1715143163 c:\users\laptophq\desktop\abca\golf\baseobject.h
 	"Common_Function.h"
+	"Math.h"
 
-1711689845 c:\users\laptophq\desktop\abca\golf\common_function.h
+1715482994 c:\users\laptophq\desktop\abca\golf\common_function.h
 	<bits/stdc++.h>
 	<SDL.h>
 	<SDL_image.h>
+	<SDL_ttf.h>
 
-1711354222 source:c:\users\laptophq\desktop\abca\golf\common_function.cpp
+1715585906 source:c:\users\laptophq\desktop\abca\golf\common_function.cpp
 	"Common_Function.h"
 
-1712243077 source:c:\users\laptophq\desktop\abca\golf\main.cpp
+1715684753 source:c:\users\laptophq\desktop\abca\golf\main.cpp
 	<SDL_ttf.h>
 	<SDL.h>
 	<SDL_image.h>
@@ -26,41 +28,50 @@
 	"Hole.h"
 	"Obstacle.h"
 	"Ellipse.h"
+	"Enemies.h"
+	"MenuGame.h"
+	"Tiles.h"
+	"gameMap.h"
+	"Timer.h"
 
-1712243927 source:c:\users\laptophq\desktop\abca\golf\ball.cpp
+1715577373 source:c:\users\laptophq\desktop\abca\golf\ball.cpp
 	"Ball.h"
 
-1712231164 c:\users\laptophq\desktop\abca\golf\ball.h
+1715574775 c:\users\laptophq\desktop\abca\golf\ball.h
 	"Common_Function.h"
+	<math.h>
 	"Entity.h"
 	"Obstacle.h"
+	"skill.h"
+	"Tiles.h"
 
 1711177673 c:\users\laptophq\desktop\abca\golf\settings.h
 	"Common_Function.h"
 
-1711355189 source:c:\users\laptophq\desktop\abca\golf\settings.cpp
+1713014988 source:c:\users\laptophq\desktop\abca\golf\settings.cpp
 	"Settings.h"
 
-1712230110 c:\users\laptophq\desktop\abca\golf\math.h
+1715138443 c:\users\laptophq\desktop\abca\golf\math.h
 	<iostream>
+	<SDL.h>
 
-1712233012 c:\users\laptophq\desktop\abca\golf\entity.h
+1715590811 c:\users\laptophq\desktop\abca\golf\entity.h
 	"Common_Function.h"
 	"Math.h"
 
-1712241954 c:\users\laptophq\desktop\abca\golf\renderwindow.h
+1715518772 c:\users\laptophq\desktop\abca\golf\renderwindow.h
 	"Common_Function.h"
 
-1712242276 source:c:\users\laptophq\desktop\abca\golf\renderwindow.cpp
+1715518764 source:c:\users\laptophq\desktop\abca\golf\renderwindow.cpp
 	"RenderWindow.h"
 
-1711690188 c:\users\laptophq\desktop\abca\golf\hole.h
+1713960670 c:\users\laptophq\desktop\abca\golf\hole.h
 	"Entity.h"
 
-1712234889 c:\users\laptophq\desktop\abca\golf\obstacle.h
+1712894036 c:\users\laptophq\desktop\abca\golf\obstacle.h
 	"Entity.h"
 
-1712234679 source:c:\users\laptophq\desktop\abca\golf\obstacless.cpp
+1712895772 source:c:\users\laptophq\desktop\abca\golf\obstacless.cpp
 	"Obstacle.h"
 
 1711800964 c:\users\laptophq\desktop\abca\golf\obstaclebuilder.h
@@ -78,4 +89,69 @@
 	"Math.h"
 	"Obstacle.h"
 	"Ball.h"
+
+1712662046 source:c:\users\laptophq\desktop\abca\golf\math.cpp
+	"Math.h"
+
+1715588986 source:c:\users\laptophq\desktop\abca\golf\enemies.cpp
+	"Enemies.h"
+
+1715664037 c:\users\laptophq\desktop\abca\golf\enemies.h
+	"Entity.h"
+	<math.h>
+	"CollisionsAndEffects.h"
+	"AmmoObject.h"
+	"Ball.h"
+
+1712568469 source:c:\users\laptophq\desktop\abca\golf\algorithms.cpp
+	"algorithms.h"
+
+1713711428 c:\users\laptophq\desktop\abca\golf\algorithms.h
+	<bits/stdc++.h>
+
+1712836957 c:\users\laptophq\desktop\abca\golf\collisionsandeffects.h
+	"Obstacle.h"
+
+1712837428 source:c:\users\laptophq\desktop\abca\golf\collisioneffects.cpp
+	"CollisionsAndEffects.h"
+
+1715245930 c:\users\laptophq\desktop\abca\golf\menugame.h
+	"Math.h"
+	"Common_Function.h"
+
+1715246105 source:c:\users\laptophq\desktop\abca\golf\menugame.cpp
+	"MenuGame.h"
+
+1713835008 c:\users\laptophq\desktop\abca\golf\ammoobject.h
+	"BaseObject.h"
+
+1713961521 source:c:\users\laptophq\desktop\abca\golf\ammoobject.cpp
+	"AmmoObject.h"
+	"Ball.h"
+
+1714032922 c:\users\laptophq\desktop\abca\golf\skill.h
+	"math.h"
+	"BaseObject.h"
+
+1714031746 source:c:\users\laptophq\desktop\abca\golf\skill.cpp
+	"skill.h"
+
+1714624348 c:\users\laptophq\desktop\abca\golf\gamemap.h
+	"Common_Function.h"
+	"BaseObject.h"
+	"RenderWindow.h"
+
+1714900069 source:c:\users\laptophq\desktop\abca\golf\tile.cpp
+	"Tiles.h"
+
+1714874242 c:\users\laptophq\desktop\abca\golf\tiles.h
+	"Common_Function.h"
+	"Math.h"
+	"RenderWindow.h"
+
+1715235900 source:c:\users\laptophq\desktop\abca\golf\timer.cpp
+	"Timer.h"
+
+1715236144 c:\users\laptophq\desktop\abca\golf\timer.h
+	"Common_Function.h"
 

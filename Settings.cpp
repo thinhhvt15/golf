@@ -7,8 +7,8 @@ Settings::Settings()
     mode = 100;
     rect_.x = 620;
     rect_.y = 130;
-    rect_.w = 81;
-    rect_.h = 97;
+    rect_.w = 50;
+    rect_.h = 60;
     button = nullptr;
     settingScreen = nullptr;
 }

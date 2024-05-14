@@ -4,6 +4,18 @@ SDL_Renderer* gRenderer = nullptr;
 SDL_Texture* g_background = nullptr;
 SDL_Event events;
 
+extern bool gameIsRunning = 1;
+extern bool gameMenu = 0;
+extern bool gameConfig = 0;
+extern bool gameStart = 0;
+extern bool gameEnd = 0;
+extern bool startPressed = 0;
+extern bool isQuit = 0;
+extern SDL_Rect camera = {0, 0, 0, 0};
+extern int state = 0;
+
+//extern SDL_Rect gTileClips[ TOTAL_TILE_SPRITES ];
+
 SDL_Renderer* SDL_CommonFunc::createRenderer(SDL_Window* window)
 {
     SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
