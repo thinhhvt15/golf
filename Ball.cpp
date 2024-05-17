@@ -160,11 +160,28 @@ void Ball::handleEffect(std::vector<Obstacle*>& effect_obs)
     }
 }
 
+void Ball::updateAmmo(AmmoObject* ammo, int mouseX, int mouseY)
+{
+    double guessX = getBallPosX() + camera.x;
+    double guessY = getBallPosY() + camera.y;
+
+    if (!ammo->angleSet()) {
+        ammo->setAngle(-atan2(guessX - mouseX, guessY - mouseY) * 180 / 3.1415);
+        ammo->setAngleIsSet(1);
+        ammo->setDistance( SDL_sqrt( SDL_pow(guessX - mouseX, 2) + SDL_pow(guessY - mouseY, 2)) );
+        ammo->setDirectionX( (guessX - mouseX) / ammo->getDistance() * 0.25 );
+        ammo->setDirectionY( (guessY - mouseY) / ammo->getDistance() * 0.25 );
+//        ammo->setVelocityY(SDL_sqrt(0.5 * 0.5 - SDL_pow(ammo->getVelocityX(), 2)));
+    }
+
+    ammo->setX(ammo->getX() + ammo->getDirectionX());
+    ammo->setY(ammo->getY() + ammo->getDirectionY());
+}
+
 void Ball::update(bool mouseDown, bool mousePressed, std::vector<Obstacle*>& effect_obs,
                     std::vector<Obstacle*>& static_obs, Tile *tiles[])
 {
-//    updateCoolDown();
-//    std::cout << pos.x << " " << pos.y << "\n";
+
     if (mouseDown) {
         int mouseX = 0, mouseY = 0;
         SDL_GetMouseState(&mouseX, &mouseY);
@@ -232,15 +249,17 @@ void Ball::useSkill_0(int i)
     }
 }
 
-void Ball::useSkill_1(const double& initFreezeTime, int i)
+void Ball::useSkill_1(int i)
 {
-    if (SDL_GetTicks() - initSkill[i] >= coolDown[i]) {
-        skill[1] = 1;
+    skill[i] = 0;
+    if (SDL_GetTicks() - initSkill[i] >= coolDown[i] || initSkill[i] == 0) {
+        skill[i] = 1;
+        initSkill[i] = SDL_GetTicks();
     }
 
-    if (SDL_GetTicks() - initFreezeTime >= 3000) {
-        skill[1] = 0;
-        initSkill[i] = SDL_GetTicks();
+    if (skill[1]) {
+        AmmoObject* newAmmo = new AmmoObject(getX(), getY());
+        ammoList.push_back(newAmmo);
     }
 }
 

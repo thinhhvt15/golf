@@ -7,6 +7,7 @@
 #include "Obstacle.h"
 #include "skill.h"
 #include "Tiles.h"
+#include "AmmoObject.h"
 
 const int BALL_HEIGHT = 15;
 const int BALL_WIDTH = 15;
@@ -59,9 +60,10 @@ public:
     void setEndMouse(Vector2f v) {endMouse = v;}
     Vector2f getEndMouse() {return endMouse;}
 
+    void setSkill_r(int x) {circleBoom->set_r(x);}
     int getSkill_r() {return circleBoom->get_r();}
     void useSkill_0(int i);
-    void useSkill_1(const double& initFreezeTime, int i);
+    void useSkill_1(int i);
     void useSkill_2(int i);
     void setSkill(bool x, int i) {skill[i] = x;}
     bool getSkill(int i) {return skill[i];}
@@ -75,16 +77,22 @@ public:
     int getHP() {return healthPoints;}
     void setOther0(double x) {otherInit0 = x;}
     double getOther0() {return otherInit0;}
+    double getCoolDown(int i) {return coolDown[i];}
+
+    void updateAmmo(AmmoObject* ammo, int mouseX, int mouseY);
+    void updateAmmoList(std::vector<AmmoObject*> x) {ammoList = x;}
+    std::vector<AmmoObject*> getAmmoList() {return ammoList;}
 
     void updateCoolDown();
     void update(bool mouseDown, bool mousePressed, std::vector<Obstacle*>& effect_obs,
                     std::vector<Obstacle*>& static_obs, Tile *tiles[]);
 
 private:
+    std::vector<AmmoObject*> ammoList;
     Vector2f endMouse;
     int initialMouseX, initialMouseY;
     double velocityX, velocityY, dirX, dirY, r;
-    double coolDown[4] = {2000, 3000, 8000, 3000};
+    double coolDown[4] = {2000, 500, 8000, 3000};
     bool ball_clicked, canMove = true;
     SDL_Rect ballRect_;
     SDL_Texture* ball;

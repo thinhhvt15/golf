@@ -12,11 +12,11 @@ const int SCREEN_WIDTH = 750;
 
 const int TOTAL_TILES = 176;
 const int TOTAL_TILE_SPRITES = 12;
-const int LEVEL_WIDTH = 1280;
-const int LEVEL_HEIGHT = 1280;
+const int LEVEL_WIDTH = 1920;
+const int LEVEL_HEIGHT = 1920;
 
-const int MAX_TILES_Y = 40;
-const int MAX_TILES_X = 40;
+const int MAX_TILES_Y = 60;
+const int MAX_TILES_X = 60;
 
 const int TILE_WIDTH = 32;
 const int TILE_HEIGHT = 32;
@@ -29,16 +29,28 @@ extern bool gameStart;
 extern bool gameEnd;
 extern bool startPressed;
 extern bool isQuit;
+extern bool skill_1;
 extern SDL_Rect camera;
 extern int state;
+extern int gameMode;
+
 enum GAMESTATE
 {
     MENU = 0,
     START = 1,
     CONFIG = 2,
-    PAUSE = 3
+    PAUSE = 3,
+    QUIT = 4,
+    DIED = 5,
+    Itr = 6
 };
 
+enum GAMEMODE
+{
+    EASY = 0,
+    MEDIUM = 1,
+    HARD = 2
+};
 #define TILE_SIZE 64
 #define MAX_MAP_X 400
 #define MAX_MAP_Y 10

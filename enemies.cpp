@@ -97,20 +97,20 @@ void Enemies::reload()
 }
 void Enemies::updateAmmo(Ball* b, AmmoObject* ammo, SDL_Rect& camera)
 {
-    double guessX = b->getBallPosX() + camera.x + b->getVelocityX();
-    double guessY = b->getBallPosY() + camera.y + b->getVelocityY();
+    double guessX = b->getBallPosX() + camera.x + b->getVelocityX() * 2;
+    double guessY = b->getBallPosY() + camera.y + b->getVelocityY() * 2;
 
     if (!ammo->angleSet()) {
         ammo->setAngle(-atan2(guessX - getX(), guessY - getY()) * 180 / 3.1415);
         ammo->setAngleIsSet(1);
         ammo->setDistance( SDL_sqrt( SDL_pow(guessX - getX(), 2) + SDL_pow(guessY - getY(), 2)) );
-        ammo->setDirectionX( (guessX - getX()) / ammo->getDistance() * 0.25);
+        ammo->setDirectionX( (guessX - getX()) / ammo->getDistance() * 0.25 );
         ammo->setDirectionY( (guessY - getY()) / ammo->getDistance() * 0.25 );
 //        ammo->setVelocityY(SDL_sqrt(0.5 * 0.5 - SDL_pow(ammo->getVelocityX(), 2)));
     }
 
     ammo->setX(ammo->getX() + ammo->getDirectionX());
-    ammo->setY(ammo->getY() + ammo->getDirectionY());
+    ammo->setY(ammo->getY() + ammo->getDirectionY()) ;
 }
 
 void Enemies::update1(Ball* b, std::vector<Obstacle*>& static_obs, std::vector<Obstacle*>& effect_obs, std::vector<Enemies*>& enemeo,

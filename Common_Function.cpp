@@ -11,8 +11,10 @@ extern bool gameStart = 0;
 extern bool gameEnd = 0;
 extern bool startPressed = 0;
 extern bool isQuit = 0;
+extern bool skill_1 = 0;
 extern SDL_Rect camera = {0, 0, 0, 0};
 extern int state = 0;
+extern int gameMode = 0;
 
 //extern SDL_Rect gTileClips[ TOTAL_TILE_SPRITES ];
 

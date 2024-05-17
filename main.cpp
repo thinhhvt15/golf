@@ -25,6 +25,7 @@ Ball* b;
 Hole h;
 
 bool init = (window.init() && window.createRenderer());
+SDL_Texture* blackTex = window.loadTexture("black.png");
 SDL_Texture* ballTex = window.loadTexture("ball.png");
 SDL_Texture* settingTex = window.loadTexture("settingScreen.png");
 SDL_Texture* buttonTex = window.loadTexture("button.png");
@@ -42,6 +43,7 @@ SDL_Texture* laserTex = window.loadTexture("laser.png");
 SDL_Texture* skill_0Tex = window.loadTexture("circleBoom.png");
 SDL_Texture* freezeTex = window.loadTexture("freeze.png");
 SDL_Texture* bg_art = window.loadTexture("background.png");
+SDL_Texture* intensityTex = window.loadTexture("intensity.png");
 
 SDL_Texture* cross = window.loadTexture("cross.png");
 SDL_Texture* blur = window.loadTexture("blur.png");
@@ -50,12 +52,19 @@ SDL_Texture* menuTex = window.loadTexture("MenuTex.png");
 SDL_Texture* playTex = window.loadTexture("PlayButton.png");
 SDL_Texture* healthBarTex = window.loadTexture("healthBar.png");
 SDL_Texture* mapTiles = window.loadTexture("mapTile.png");
+SDL_Texture* border = window.loadTexture("border.png");
+SDL_Texture* configBarTex = window.loadTexture("configBar.png");
+SDL_Texture* tryAgainTex = window.loadTexture("tryAgain.png");
+SDL_Texture* backButton = window.loadTexture("backButton.png");
+SDL_Texture* settingButton = window.loadTexture("settingButton.png");
 
+TTF_Font* font48 = TTF_OpenFont("font.ttf", 48);
 TTF_Font* font32 = TTF_OpenFont("font.ttf", 32);
 TTF_Font* font16 = TTF_OpenFont("font.ttf", 16);
+TTF_Font* font64 = TTF_OpenFont("font.ttf", 64);
 
 SDL_Rect gTileClips[ TOTAL_TILES ];
-Tile* tileSet[ 2000 ];
+Tile* tileSet[ 10000 ];
 vector<SDL_Texture*> mirror;
 vector<vector<SDL_Texture*>> obsTex;
 vector<Obstacle*> obs, static_obs, effect_obs;
@@ -64,12 +73,21 @@ vector<Enemies*> deadZombies;
 vector<SDL_Texture*> zombie(4);
 vector<SDL_Texture*> shockwaveTex(5);
 vector<SDL_Texture*> simpleDead(5);
-MENUu menuS;
+vector<SDL_Texture*> skill_Tex(5);
+
+Mix_Chunk* skill0_sfx = Mix_LoadWAV("sfx/skill0.mp3");
+Mix_Chunk* skill1_sfx = Mix_LoadWAV("sfx/skill1.mp3");
+Mix_Music* music = Mix_LoadMUS("sfx/chill.mp3");
+Mix_Music* bg_music = Mix_LoadMUS("sfx/backgroundMusic.mp3");
 
 SDL_Color white = {255, 255, 255};
 SDL_Color black = {0, 0, 0};
 bool pauseState = 0;
+
+vector<int> high_score;
+int startPoint;
 //GameMap game_map;
+int prevState = -1;
 
 mt19937 rng;
 int ran(int l, int r)
@@ -112,7 +130,7 @@ bool setTiles( Tile* tiles[] )
 		    for (int j = 0; j < MAX_TILES_X; ++j) {
                 int tileType = -1;
 
-                map >> tileType;
+//                map >> tileType;
                 tileType = 81;
 
                 if( map.fail() )
@@ -164,6 +182,7 @@ void randomChaseEnemy(int width, int height, int posX, int posY)
 }
 
 double timer = 2000;
+double initTime, curTime;
 void spawnZombies(double& iniTime, double& curTime, int posX, int posY, int w, int h)
 {
     if (curTime - iniTime >= timer) {
@@ -235,10 +254,58 @@ void levelTwo()
     enemeo.push_back(enem);
 }
 
-bool skill_0 = 0, skill_2;
+void decreaseHP_Enemy(Enemies* e, int dec)
+{
+    e->setHP(e->getHP() - dec);
+    if (e->getHP() <= 0) {
+        e->setDead(1);
+    }
+}
+
+bool skill_0 = 0, skill_2 = 0;
 bool freeze = 0;
 double initTimeFreeze = 0, initCBoom = 0, initThunder = 0;
 bool isProtected = 0;
+
+void Restart()
+{
+    b = new Ball;
+    enemeo.clear();
+}
+
+void dieScreen()
+{
+    window.render(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100, "YOU DIED", font64, black);
+
+    SDL_Rect tryAgainRect = {SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 + 20, 80, 80};
+    SDL_Rect menuRect = {SCREEN_WIDTH / 2 + 30, SCREEN_HEIGHT / 2 + 20, 80, 80};
+    window.render(tryAgainTex, tryAgainRect, 0, 0);
+    window.render(menuTex, menuRect, 0, 0);
+
+    bool mouseDown = 0;
+    SDL_Event events;
+    while(SDL_PollEvent(&events)) {
+        switch(events.type) {
+        case (SDL_MOUSEBUTTONDOWN):
+            mouseDown = 1;
+            break;
+        }
+    }
+
+    if (mouseDown) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), tryAgainRect)) {
+            Restart();
+            state = GAMESTATE::START;
+        }
+        else if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), menuRect)) {
+            state = GAMESTATE::MENU;
+            Mix_PlayMusic(bg_music, -1);
+        }
+    }
+}
 
 void update()
 {
@@ -246,7 +313,6 @@ void update()
     int mouseDown = 0, mousePressed = 0;
     bool inHole = 0;
     bool ingameStart = 0;
-    double initTime, curTime;
 
     while(SDL_PollEvent(&events)) {
         switch (events.type) {
@@ -265,12 +331,11 @@ void update()
                 skill_0 = 1;
                 break;
 
-            case (SDLK_f):
-                freeze = 1;
-                initTimeFreeze = SDL_GetTicks();
+            case (SDLK_2):
+                skill_1 = 1;
                 break;
 
-            case (SDLK_2):
+            case (SDLK_3):
                 skill_2 = 1;
                 break;
 
@@ -291,13 +356,6 @@ void update()
 
     int ranNum = ran(0, 3);
 
-    if (!initTime)
-        initTime = SDL_GetTicks();
-    else {
-        curTime = SDL_GetTicks();
-//        if (enemeo.size() == 0)
-        spawnZombies(initTime, curTime, dir[ranNum].x, dir[ranNum].y, dir[ranNum].w, dir[ranNum].h);
-    }
 
     camera = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 
@@ -305,15 +363,28 @@ void update()
 //    b->setCir(b->getX(), b->getY(), b->getW() / 2);
 //    cout << b->getCir().r << "\n";
 
-    if (b->ballClicked())
+    if (b->ballClicked()) {
         ingameStart = 1;
+        if (!startPoint)
+            startPoint = SDL_GetTicks();
+    }
+
+    if (ingameStart) {
+        if (!initTime)
+            initTime = SDL_GetTicks();
+        else {
+            curTime = SDL_GetTicks();
+    //        if (enemeo.size() == 0)
+            spawnZombies(initTime, curTime, dir[ranNum].x, dir[ranNum].y, dir[ranNum].w, dir[ranNum].h);
+        }
+    }
 
     if (ingameStart) {
         for (Enemies* e : enemeo)
             e->update1(b, static_obs, effect_obs, enemeo, camera);
     }
 
-    for( int i = 0; i < 1600; ++i )
+    for( int i = 0; i < 3600; ++i )
     {
         SDL_Rect rect = {tileSet[i]->getBox().x - camera.x, tileSet[i]->getBox().y - camera.y, TILE_WIDTH, TILE_HEIGHT};
         window.render(mapTiles, gTileClips[tileSet[i]->getType()], rect, 0, 0);
@@ -333,17 +404,10 @@ void update()
         e->nextSprite();
     }
 
-    if (freeze) {
-        SDL_Rect rect = {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT};
-        window.render(freezeTex, rect, 0, 0);
-        b->useSkill_1(initTimeFreeze, 1);
-        if (b->getSkill(1) == 0)
-            freeze = 0;
-    }
-
     if (skill_2) {
         b->useSkill_2(2);
         if (b->getSkill(2)) {
+            Mix_PlayChannel(-1, skill1_sfx, 0);
             int d = 0;
             vector<pair<double, int>> getMinDis;
             for (Enemies* enem : enemeo)
@@ -352,16 +416,46 @@ void update()
             sort(getMinDis.begin(), getMinDis.end());
             for (int i = 0; i < min(4, (int)getMinDis.size()); i++) {
                 if (getMinDis[i].first > 400 * 400) break;
-                enemeo[getMinDis[i].second]->setDead(1);
-                enemeo[getMinDis[i].second]->setDieType(1);
-                enemeo[getMinDis[i].second]->setNumSprite(4);
-                enemeo[getMinDis[i].second]->setCurSprite(0);
+
+                decreaseHP_Enemy(enemeo[getMinDis[i].second], 100);
+                if (enemeo[getMinDis[i].second]->isDead()) {
+                    enemeo[getMinDis[i].second]->setDieType(1);
+                    enemeo[getMinDis[i].second]->setNumSprite(4);
+                    enemeo[getMinDis[i].second]->setCurSprite(0);
+                    deadZombies.push_back(enemeo[getMinDis[i].second]);
+                }
             }
         }
         else
             skill_2 = 0;
     }
 
+    if (skill_1) {
+        b->useSkill_1(1);
+        if (b->getSkill(1) == 0)
+            skill_1 = 0;
+    }
+
+    for (int i = 0; i < (int)b->getAmmoList().size(); i++) {
+        int mouseX, mouseY;
+        if (skill_1)
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+        AmmoObject* cur = b->getAmmoList().at(i);
+        b->updateAmmo(cur, mouseX, mouseY);
+        SDL_Rect rect = cur->getRect();
+
+        for (Enemies* e : enemeo) {
+            SDL_Rect enemy = e->getRect();
+            enemy.x -= camera.x;
+            enemy.y -= camera.y;
+            if (mathFunc::checkCollision(rect, enemy)) {
+                decreaseHP_Enemy(e, 100);
+                deadZombies.push_back(e);
+            }
+        }
+        window.render(laserTex, rect, cur->getAngle() + 90, 0);
+    }
 
     for (Obstacle* e : effect_obs) {
         SDL_Rect rect = e->getRect();
@@ -378,13 +472,17 @@ void update()
         curCir.x += camera.x;
         curCir.y += camera.y;
         if ( mathFunc::checkCollision(curCir, enem->getRect()) && b->getSkill_r() > 0) {
-            enem->setDead(1);
-            enem->setDieType(0);
-            enem->setCurSprite(0);
-            enem->setNumSprite(5);
+            enem->setHP(enem->getHP() - 10);
+
+            if (enem->getHP() <= 0) {
+                enem->setDead(1);
+                enem->setDieType(0);
+                enem->setCurSprite(0);
+                enem->setNumSprite(5);
+                b->setSkill_r(0);
+            }
         }
     }
-
 
     double ratioHP = b->getHP() * 1.0 / 100;
 
@@ -398,6 +496,9 @@ void update()
             if (b->getOther0() == 0)
                 b->setOther0(SDL_GetTicks());
 //            isProtected = 1;
+        }
+        else {
+            Mix_PlayChannel(-1, skill0_sfx, 0);
         }
     }
 
@@ -420,9 +521,10 @@ void update()
     }
 
     for (Enemies* e : enemeo) {
-        if (b->isDead())
+        if (b->isDead()) {
+            state = GAMESTATE::DIED;
             break;
-
+        }
         if (e == nullptr) continue;
         vector<Enemies*> copVec = enemeo;
 
@@ -439,9 +541,6 @@ void update()
         rect.x -= camera.x;
         rect.y -= camera.y;
 
-        if (mathFunc::distance(e->getPos(), b->getPos()) <= 50 * 50)
-            cout << "";
-
         window.render(zombie.at(e->getCurSprite()), rect, 0, e->getFlip());
 
         for (int i = 0; i < e->getAmmoList().size(); i++) {
@@ -450,6 +549,17 @@ void update()
             rect = e->getAmmoList().at(i)->getRect();
             rect.x -= camera.x;
             rect.y -= camera.y;
+
+            if (gameMode == 0 && SDL_GetTicks() - vec[i]->getInitAmmo() >= 500) {
+                vec.erase(vec.begin() + i);
+                e->setAmmoList(vec);
+                continue;
+            }
+            else if (gameMode == 1 && SDL_GetTicks() - vec[i]->getInitAmmo() >= 1000) {
+                vec.erase(vec.begin() + i);
+                e->setAmmoList(vec);
+                continue;
+            }
             if (mathFunc::checkCollision(b->getRect(), rect)) {
                 vec.erase(vec.begin() + i);
                 e->setAmmoList(vec);
@@ -460,6 +570,9 @@ void update()
 
                 if (b->getHP() <= 0) {
                     b->setDead(1);
+                    state = GAMESTATE::DIED;
+                    high_score.push_back(SDL_GetTicks() - startPoint);
+                    startPoint = 0;
                     break;
                 }
             }
@@ -529,11 +642,22 @@ void update()
 
     int x = 20;
 
+    SDL_Rect configRect = {600, 0, 80, 80};
+    window.render(settingButton, configRect, 0, 0);
+
+    if (mouseDown) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), configRect)) {
+            prevState = state;
+            state = GAMESTATE::CONFIG;
+        }
+
+    }
+
     for (int i = 0; i < 3; i++) {
-//        cout << b->getCoolDownTime(i) << "\n"
-//        window.renderCenter(x, SCREEN_HEIGHT - 30, "1", font16, black);
         string coolDownTime = to_string(b->getCoolDownTime(i) / 1000.0);
-//        cout << coolDownTime << "\n";
         int cnt = 0, j;
         bool ok = 0;
         for (j = 0; j < (int)coolDownTime.size(); j++) {
@@ -544,19 +668,332 @@ void update()
                 ok = 1;
         }
 
-//        cout << coolDownTime << "\n";
         string str = coolDownTime.substr(0, j);
-//        cout << str << "\n";
+
+        double ratioCoolDown = b->getCoolDownTime(i) / b->getCoolDown(i);
         window.render(x += 100, SCREEN_HEIGHT - 30, str.c_str(), font16, white);
+        SDL_Rect blurR = {x, SCREEN_HEIGHT - 80, 30 * ratioCoolDown, 30};
+        SDL_Rect rect = {x, SCREEN_HEIGHT - 80, 30, 30};
+        window.render(skill_Tex[i], rect, 0, 0);
+        rect.x -= 3; rect.y -= 3;
+        rect.w += 3; rect.h += 3;
+        window.render(border, rect, 0, 0);
+        window.render(blur, blurR, 0, 0);
     }
 
-    window.Show();
     b->updateCoolDown();
 }
 
+//int instate = 0;
+//
+//bool instruction1()
+//{
+//
+//    SDL_Event events;
+//
+//    bool mouseDown = 0, mousePressed = 0;
+//    while(SDL_PollEvent(&events)) {
+//        switch (events.type) {
+//
+//        case SDL_MOUSEBUTTONDOWN:
+//            mouseDown = mousePressed = 1;
+//            break;
+//
+//        case SDL_MOUSEBUTTONUP:
+//            mouseDown = 0;
+//            break;
+//
+//        case SDL_KEYDOWN:
+//            switch(events.key.keysym.sym) {
+//            case (SDLK_1):
+//                skill_0 = 1;
+//                break;
+//
+//            case (SDLK_2):
+//                skill_1 = 1;
+//                break;
+//
+//            case (SDLK_3):
+//                skill_2 = 1;
+//                break;
+//
+//            case (SDLK_ESCAPE):
+//                if (state == GAMESTATE::START)
+//                    state = GAMESTATE::PAUSE;
+//            }
+//        }
+//
+//        b->update(1, 1, effect_obs, static_obs, tileSet);
+//    }
+//
+//    window.render(500, 200, "Di chuyen qua bong nguoc huong con chuot");
+//    window.render(600, 200, "Move the ball opposite the direction of the mouse");
+//    window.render(0, 600, "SKIP", font32, white);
+//    if (mouseDown) {
+//        int mouseX, mouseY;
+//        SDL_GetMouseState(&mouseX, &mouseY);
+//
+//        if (mouseX >= 500 && mouseY <= 200) {
+//            instate++;
+//            return 1;
+//        }
+//    }
+//
+//    return 0;
+//}
+//
+//bool instruction2()
+//{
+//    SDL_Event events;
+//
+//    bool mouseDown = 0, mousePressed = 0;
+//    bool skill_0 = 0, skill_1 = 0, skill_2 = 0;
+//    while(SDL_PollEvent(&events)) {
+//        switch (events.type) {
+//
+//        case SDL_MOUSEBUTTONDOWN:
+//            mouseDown = mousePressed = 1;
+//            break;
+//
+//        case SDL_MOUSEBUTTONUP:
+//            mouseDown = 0;
+//            break;
+//
+//        case SDL_KEYDOWN:
+//            switch(events.key.keysym.sym) {
+//            case (SDLK_1):
+//                skill_0 = 1;
+//                break;
+//
+//            case (SDLK_2):
+//                skill_1 = 1;
+//                break;
+//
+//            case (SDLK_3):
+//                skill_2 = 1;
+//                break;
+//
+//            case (SDLK_ESCAPE):
+//                if (state == GAMESTATE::START)
+//                    state = GAMESTATE::PAUSE;
+//            }
+//        }
+//
+//        b->update(1, 1, effect_obs, static_obs, tileSet);
+//    }
+//
+//    window.render(500, 200, "An phim '1' de dung chieu thu nhat");
+//    window.render(600, 200, "Press '1' to use skill 1");
+//    window.render(0, 600, "SKIP", font32, white);
+//    if (mouseDown) {
+//        int mouseX, mouseY;
+//        SDL_GetMouseState(&mouseX, &mouseY);
+//
+//        if (skill_0 && mouseX >= 500 && mouseY <= 200) {
+//            instate++;
+//            return 1;
+//        }
+//    }
+//
+//    return 0;
+//}
+//
+//bool instruction3()
+//{
+//    SDL_Event events;
+//
+//    bool mouseDown = 0, mousePressed = 0;
+//    bool skill_0 = 0, skill_1 = 0, skill_2 = 0;
+//    while(SDL_PollEvent(&events)) {
+//        switch (events.type) {
+//
+//        case SDL_MOUSEBUTTONDOWN:
+//            mouseDown = mousePressed = 1;
+//            break;
+//
+//        case SDL_MOUSEBUTTONUP:
+//            mouseDown = 0;
+//            break;
+//
+//        case SDL_KEYDOWN:
+//            switch(events.key.keysym.sym) {
+//            case (SDLK_1):
+//                skill_0 = 1;
+//                break;
+//
+//            case (SDLK_2):
+//                skill_1 = 1;
+//                break;
+//
+//            case (SDLK_3):
+//                skill_2 = 1;
+//                break;
+//
+//            case (SDLK_ESCAPE):
+//                if (state == GAMESTATE::START)
+//                    state = GAMESTATE::PAUSE;
+//            }
+//        }
+//
+//        b->update(1, 1, effect_obs, static_obs, tileSet);
+//    }
+//
+//    window.render(500, 200, "An phim '2' de dung chieu thu hai");
+//    window.render(600, 200, "Press '2' to use skill 2");
+//    window.render(0, 600, "SKIP", font32, white);
+//    if (mouseDown) {
+//        int mouseX, mouseY;
+//        SDL_GetMouseState(&mouseX, &mouseY);
+//
+//        if (skill_1 && mouseX >= 500 && mouseY <= 200) {
+//            instate++;
+//            return 1;
+//        }
+//    }
+//
+//    return 0;
+//}
+//
+//Enemies* e = new Enemies(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+//
+//bool instruction3()
+//{
+//    SDL_Event events;
+//
+//    bool mouseDown = 0, mousePressed = 0;
+//    bool skill_0 = 0, skill_1 = 0, skill_2 = 0;
+//    while(SDL_PollEvent(&events)) {
+//        switch (events.type) {
+//
+//        case SDL_MOUSEBUTTONDOWN:
+//            mouseDown = mousePressed = 1;
+//            break;
+//
+//        case SDL_MOUSEBUTTONUP:
+//            mouseDown = 0;
+//            break;
+//
+//        case SDL_KEYDOWN:
+//            switch(events.key.keysym.sym) {
+//            case (SDLK_1):
+//                skill_0 = 1;
+//                break;
+//
+//            case (SDLK_2):
+//                skill_1 = 1;
+//                break;
+//
+//            case (SDLK_3):
+//                skill_2 = 1;
+//                break;
+//
+//            case (SDLK_ESCAPE):
+//                if (state == GAMESTATE::START)
+//                    state = GAMESTATE::PAUSE;
+//            }
+//        }
+//
+//        b->update(1, 1, effect_obs, static_obs, tileSet);
+//    }
+//
+//    if (skill_2) {
+//        b->useSkill_2(2);
+//        Mix_PlayChannel(-1, skill1_sfx, 0);
+//
+//            decreaseHP_Enemy(e, 100);
+//            if (e->isDead()) {
+//                e->setDieType(1);
+//                e->setNumSprite(4);
+//                e->setCurSprite(0);
+//                deadZombies.push_back(enemeo[getMinDis[i].second]);
+//            }
+//        }
+//        else
+//            skill_2 = 0;
+//    }
+//    window.render(500, 200, "An phim '3' de dung chieu thu ba");
+//    window.render(600, 200, "Press '3' to use skill 3");
+//    window.render(0, 600, "SKIP", font32, white);
+//    if (mouseDown) {
+//        int mouseX, mouseY;
+//        SDL_GetMouseState(&mouseX, &mouseY);
+//
+//        if (skill_2 && mouseX >= 500 && mouseY <= 200) {
+//            instate++;
+//            return 1;
+//        }
+//    }
+//
+//    return 0;
+//}
+//
+//bool instructionScreen()
+//{
+//
+//    b = new Ball;
+//    b->setX(SCREEN_WIDTH / 2);
+//    b->setY(SCREEN_HEIGHT / 2);
+//    for( int i = 0; i < 3600; ++i )
+//    {
+//        SDL_Rect rect = {tileSet[i]->getBox().x - camera.x, tileSet[i]->getBox().y - camera.y, TILE_WIDTH, TILE_HEIGHT};
+//        window.render(mapTiles, gTileClips[tileSet[i]->getType()], rect, 0, 0);
+//    }
+//
+//    window.render(ballTex, b->getRect(), 0, 0);
+//
+//    if (instate == 0)
+//        while(!instruction1());
+//
+//    else if (instate == 1)
+//        while(!instruction2());
+//    else if (instate == 2)
+//        while(!instruction3());
+//    else {
+//        return 0;
+//    }
+//
+//    return 1;
+//}
+
+
+void instructionScreen()
+{
+    window.render(blackTex, 0, 0, 750, 750);
+    window.render(skill_Tex[0], 120, 200, 100, 100);
+    window.render(120 + 100, 200, "Kich hoat mot qua cau nang luong xoay quanh qua bong de giet chet ke dich", font32, white);
+    window.render(laserTex, 120, 400, 100, 100);
+    window.render(120 + 100, 400, "Ban mot vien dan xuyen qua ke dich", font32, white);
+    window.render(skill_Tex[2], 120, 600, 100, 100);
+    window.render(120 + 100, 600, "Giat chet 4 ke dich gan nhat", font32, white);
+    SDL_Rect backRect = {0, 0, 100, 50};
+    window.render(backButton, 0, 0, 100, 50);
+
+    SDL_Event events;
+    while(SDL_PollEvent(&events)) {
+        if (events.type == SDL_MOUSEBUTTONDOWN) {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+
+            if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), backRect)) {
+//                prevState = GAMESTATE::INS;
+                state = prevState;
+            }
+        }
+    }
+}
 void pauseScreen()
 {
+    SDL_Rect menuRect = {SCREEN_WIDTH / 2 - 60, SCREEN_HEIGHT / 2 - 60, 120, 120};
+    SDL_Rect quitRect = {menuRect.x - 60 * 3, menuRect.y, 120, 120};
+    SDL_Rect playRect = {menuRect.x + 60 * 3, menuRect.y, 120, 120};
+    SDL_Rect settingRect = {0, 600, 80, 80};
     SDL_Event events;
+    SDL_Rect blurRect = {0, 0, 750, 750};
+    window.render(blur, blurRect);
+    window.render(menuTex, menuRect);
+    window.render(quitTex, quitRect);
+    window.render(playTex, playRect);
+
     while(SDL_PollEvent(&events)) {
         switch (events.type) {
         case (SDL_KEYDOWN):
@@ -564,31 +1001,28 @@ void pauseScreen()
                 state = GAMESTATE::START;
                 return;
             }
+            break;
+
+        case (SDL_MOUSEBUTTONDOWN):
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            Vector2f Point = Vector2f(mouseX, mouseY);
+            if (mathFunc::checkPointInside(Point, menuRect))
+                state = GAMESTATE::MENU;
+            else if (mathFunc::checkPointInside(Point, quitRect))
+                state = GAMESTATE::QUIT;
+            else if (mathFunc::checkPointInside(Point, playRect))
+                state = GAMESTATE::START;
+            else if (mathFunc::checkPointInside(Point, settingRect))
+                state = GAMESTATE::CONFIG;
         }
     }
-    SDL_Rect menuRect = {SCREEN_WIDTH / 2 - 60, SCREEN_HEIGHT / 2 - 60, 120, 120};
-    SDL_Rect quitRect = {menuRect.x - 60 * 3, menuRect.y, 120, 120};
-    SDL_Rect playRect = {menuRect.x + 60 * 3, menuRect.y, 120, 120};
-
-    SDL_Rect blurRect = {0, 0, 750, 750};
-    window.render(blur, blurRect);
-    window.render(menuTex, menuRect);
-    window.render(quitTex, quitRect);
-    window.render(playTex, playRect);
-
-    window.Show();
-
-
-}
-
-void settingScreen()
-{
-//    SDL_Rect
-    ;
 }
 
 void menu_Screen()
 {
+//    Mix_Reserve
+
     bool isQuit = 0;
     SDL_Event events;
     bool mouseDown = 0;
@@ -599,28 +1033,150 @@ void menu_Screen()
         case SDL_MOUSEBUTTONDOWN:
             mouseDown = 1;
         }
-
-        menuS.update(mouseDown);
     }
-}
 
-void graphics()
-{
+//    SDL_Rect startRect;
+//    startRect.w = 200;
+//    startRect.h = 92;
+//    startRect.x = (SCREEN_WIDTH - startRect.w) / 2;
+//    startRect.y = (SCREEN_HEIGHT - startRect.h) / 2 - 100;
+//    SDL_Rect configRect = startRect;
+//    configRect.y += 200;
     SDL_Rect menuRect = {0, 0, 750, 750};
     SDL_Rect startRect = {(750 - 200) / 2, 750 / 2 - 100, 200, 92};
     SDL_Rect configRect = {startRect.x, startRect.y + 130, 200, 92};
 
-    if (state == GAMESTATE::MENU) {
-        window.render(menuScreen, menuRect, 0, 0);
-        window.render(startButton, startRect, 0, 0);
-        window.render(configButton, configRect, 0, 0);
+    SDL_Rect insRect = {50, 450, 200, 100};
+
+    window.render(menuScreen, menuRect, 0, 0);
+    window.render(startButton, startRect, 0, 0);
+    window.render(configButton, configRect, 0, 0);
+
+    window.render(200, 100, "ZOMBIE KILLER", font64, white);
+    window.render(50, 450, "INSTRUCTION", font48, white);
+    window.render(200, 600, "High Score: ", font48, white);
+    sort(high_score.rbegin(), high_score.rend());
+
+    if (high_score.size()) {
+        string highStr = to_string(high_score[0]);
+        window.render(400, 650, highStr.c_str(), font48, white);
     }
 
-    if (state == GAMESTATE::CONFIG) {
-        window.render(buttonTex, settings.getRect());
-        SDL_Rect rect = {0, 0, 600, 600};
-        window.render(settingTex, rect, 0, 0);
+    if (mouseDown) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), startRect)) {
+            state = GAMESTATE::START;
+            Mix_PlayMusic(music, -1);
+        }
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), configRect)) {
+            prevState = GAMESTATE::MENU;
+            state = GAMESTATE::CONFIG;
+//            Mix_PlayMusic(bg_music, -1);
+        }
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), insRect)) {
+            prevState = GAMESTATE::MENU;
+            state = GAMESTATE::Itr;
+        }
     }
+}
+
+double RatioMusic = 1, RatioSFX = 1, RatioMode = 0;
+void configScreen()
+{
+    SDL_Rect blurRect = {0, 0, 750, 750};
+    window.render(blur, blurRect, 0, 0);
+    window.render(SCREEN_WIDTH / 2 - 70, 80, "SETTINGS", font48, white);
+    window.render(120, 200, "Music", font32, white);
+
+    SDL_Rect configBar1 = {240, 200, 375, 28};
+    window.render(configBarTex, configBar1, 0, 0);
+
+    SDL_Rect configBar2 = configBar1;
+    configBar2.y += 100;
+    window.render(120, 300, "SFX", font32, white);
+    window.render(configBarTex, configBar2, 0, 0);
+
+    SDL_Rect configBar3 = configBar2;
+    configBar3.y += 100;
+    window.render(120, 400, "MODE", font32, white);
+    window.render(configBarTex, configBar3, 0, 0);
+
+    SDL_Rect backRect = {0, 0, 100, 50};
+    window.render(backButton, backRect, 0, 0);
+
+    window.render(configBar1.x, configBar3.y + 40, "EASY", font16, white);
+    window.render(configBar1.x + 155, configBar3.y + 40, "MEDIUM", font16, white);
+    window.render(configBar3.x + 355, configBar3.y + 40, "HARD", font16, white);
+
+    bool mouseDown = 0, mousePressed = 0;
+    SDL_Event events;
+    while(SDL_PollEvent(&events)) {
+        switch(events.type) {
+        case (SDL_MOUSEBUTTONDOWN):
+            mouseDown = 1;
+        case (SDL_MOUSEBUTTONUP):
+            mousePressed = 1;
+        }
+    }
+
+    SDL_Rect inMusicTex = {configBar1.x + 5, configBar1.y + 5, 364, 20};
+    SDL_Rect inMusicDest = {0, 0, 364, 20};
+
+    SDL_Rect inSFXTex = {configBar2.x + 5, configBar2.y + 5, 364, 20};
+    SDL_Rect inSFXDest = {0, 0, 364, 20};
+
+    SDL_Rect inModeTex = {configBar3.x + 5, configBar3.y + 5, 364, 20};
+    SDL_Rect inModeDest = {0, 0, 364, 20};
+
+    if (mouseDown || mousePressed) {
+        int mouseX, mouseY;
+        SDL_GetMouseState(&mouseX, &mouseY);
+
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), backRect)) {
+            state = prevState;
+        }
+        else
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), configBar1)) {
+            RatioMusic = (mouseX - 240) * 1.0 / configBar1.w;
+            Mix_VolumeMusic(128 * RatioMusic);
+//            cout << (128 * RatioMusic) << "\n";
+        }
+        else
+        if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), configBar2)) {
+            RatioSFX = (mouseX - 240) * 1.0 / configBar2.w;
+            Mix_VolumeChunk(skill0_sfx, 128 * RatioSFX);
+            Mix_VolumeChunk(skill1_sfx, 128 * RatioSFX);
+        }
+        else if (mathFunc::checkPointInside(Vector2f(mouseX, mouseY), configBar3)) {
+            double curRatio = (mouseX - 240) * 1.0 / configBar3.w;
+            RatioMode = (curRatio <= 0.25 ? 0 : (curRatio <= 0.5 ? 0.5 : (curRatio <= 0.75 ? 0.5 : 1)));
+        }
+    }
+
+    inMusicDest.w *= 1.0 * RatioMusic;
+    inMusicTex.w *=  1.0 * RatioMusic;
+
+    inSFXDest.w *= 1.0 * RatioSFX;
+    inSFXTex.w *= 1.0 * RatioSFX;
+
+    inModeDest.w *= 1.0 * RatioMode;
+    inModeTex.w *= 1.0 * RatioMode;
+
+    if (RatioMode == 0) gameMode = GAMEMODE::EASY;
+    else if (RatioMode == 0.5) gameMode = GAMEMODE::MEDIUM;
+    else gameMode = GAMEMODE::HARD;
+
+    window.render(intensityTex, inMusicDest, inMusicTex);
+    window.render(intensityTex, inSFXDest, inSFXTex);
+    window.render(intensityTex, inModeDest, inModeTex);
+}
+
+void graphics()
+{
 
     window.Show();
 }
@@ -628,14 +1184,14 @@ void graphics()
 void game()
 {
 
-    while(!isQuit) {
+    while(state != GAMESTATE::QUIT) {
         switch(state) {
         case (GAMESTATE::START):
             update();
             break;
 
         case (GAMESTATE::CONFIG):
-            settingScreen();
+            configScreen();
             break;
 
         case (GAMESTATE::MENU):
@@ -645,10 +1201,17 @@ void game()
         case (GAMESTATE::PAUSE):
             pauseScreen();
             break;
+
+        case (GAMESTATE::DIED):
+            dieScreen();
+            break;
+
+        case (Itr):
+            instructionScreen();
+            break;
         }
 
-        if (state != GAMESTATE::START)
-            graphics();
+        graphics();
     }
 
 
@@ -666,20 +1229,19 @@ void game()
 int main(int argc, char* argv[])
 {
     srand(time(nullptr));
-//    if (!window.init()) return 0;
-//    if (!window.createRenderer()) return 0;
 
-//    window.render(0, 240, "LEFT CLICK TO START", font32, white);
-//    window.Show();
-//    SDL_Delay(5000);
-//    return 0;
+    Mix_PlayMusic(bg_music, -1);
+    if (skill0_sfx == nullptr) {
+        printf("%s\n",Mix_GetError());
+        return 0;
+    }
+
     if( !setTiles( tileSet ) )
 	{
 		printf( "Failed to load tile set!\n" );
 		return 0;
 	}
 
-	window.renderCenter(20, SCREEN_HEIGHT - 40, "1000000000", font16, white);
     b = new Ball;
 
     zombie[0] = window.loadTexture("zombie1.png");
@@ -698,6 +1260,9 @@ int main(int argc, char* argv[])
     simpleDead[3] = window.loadTexture("simpleDie4.png");
     simpleDead[4] = window.loadTexture("simpleDie5.png");
 
+    skill_Tex[0] = window.loadTexture("skill0.png");
+    skill_Tex[2] = window.loadTexture("shockwave2.png");
+
     window.setOpacity(bg_art, 25);
     mirror = {mirror1, mirror2};
     obsTex.push_back(vector<SDL_Texture*> {box});
@@ -709,7 +1274,7 @@ int main(int argc, char* argv[])
 
     game();
 
-    settingScreen();
+//    settingScreen();
     window.Quit();
 
     return 0;

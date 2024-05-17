@@ -15,9 +15,14 @@ public:
     double getVelocityX() {return velocityX;}
     void setVelocityY(double y) {velocityY = y;}
     double getVelocityY() {return velocityY;}
+
+    void setInitAmmo(double x) {initAmmo = x;}
+    double getInitAmmo() {return initAmmo;}
+
 private:
     double velocityX, velocityY;
     bool is_move;
+    double initAmmo = 0;
 };
 
 #endif // AMMOOBJECT_H_INCLUDED

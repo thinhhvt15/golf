@@ -49,6 +49,7 @@ namespace mathFunc
     bool checkCollision(Circle a, SDL_Rect b);
 
     bool checkCollision(SDL_Rect a, SDL_Rect b);
+    bool checkPointInside(Vector2f p, SDL_Rect a);
 
     Vector2f findIntersection(Linear c, Linear d);
     double distance(Vector2f c, Vector2f d);
@@ -56,5 +57,6 @@ namespace mathFunc
     double cross(Vector2f c, Vector2f d);
     double dot(Vector2f c, Vector2f d);
     int getSign(double x);
+
 }
 #endif // MATH_H_INCLUDED

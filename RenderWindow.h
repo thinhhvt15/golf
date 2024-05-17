@@ -2,7 +2,7 @@
 #define RENDERWINDOW_H_INCLUDED
 
 #include "Common_Function.h"
-
+#include "SDL_mixer.h"
 
 class RenderWindow
 {

@@ -7,6 +7,11 @@ bool RenderWindow::init()
         return 0;
     }
 
+    if ((Mix_Init(MIX_INIT_MP3) & MIX_INIT_MP3) != MIX_INIT_MP3) {
+        printf("Mixer could not be intialize %s\n", Mix_GetError());
+        return 0;
+    }
+
     if (IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG) < 0) {
         printf("IMG could not be intialize %s\n", IMG_GetError());
         return 0;
@@ -24,6 +29,8 @@ bool RenderWindow::init()
         printf( "SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError() );
         return 0;
     }
+
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048);
 
     return 1;
 }

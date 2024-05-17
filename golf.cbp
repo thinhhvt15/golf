@@ -44,7 +44,6 @@
 		<Unit filename="Entity.h" />
 		<Unit filename="Hole.h" />
 		<Unit filename="Math.h" />
-		<Unit filename="MenuGame.h" />
 		<Unit filename="Obstacle.h" />
 		<Unit filename="RenderWindow.cpp" />
 		<Unit filename="RenderWindow.h" />
@@ -60,7 +59,6 @@
 		<Unit filename="enemies.cpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="math.cpp" />
-		<Unit filename="menuGame.cpp" />
 		<Unit filename="obstacless.cpp" />
 		<Unit filename="skill.cpp" />
 		<Unit filename="skill.h" />

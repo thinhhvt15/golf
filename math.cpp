@@ -108,6 +108,10 @@ bool mathFunc::checkCollision(SDL_Rect a, SDL_Rect b)
     return true;
 }
 
+bool mathFunc::checkPointInside(Vector2f p, SDL_Rect a)
+{
+    return (a.x <= p.x && p.x <= a.x + a.w && a.y <= p.y && p.y <= a.y + a.h);
+}
 
 double mathFunc::distance(Vector2f c, Vector2f d)
 {

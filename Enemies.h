@@ -32,6 +32,9 @@ public:
     bool isDead() {return dead;}
     void setInitAni(double x) {initAnimationTime = x;}
     double getInitAni() {return initAnimationTime;}
+    int getHP() {return healthPoints;}
+    void setHP(int x) {healthPoints = x;}
+
 
 private:
     float velocityX, velocityY;
@@ -43,6 +46,7 @@ private:
     bool flip = 0;
     bool dead = 0;
     int dieType = 0;
+    int healthPoints = 100;
 };
 
 #endif // ENEMIES_H_INCLUDED
